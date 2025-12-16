@@ -15,30 +15,38 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "dotnet-test" "1" "2025-06-13" "" ".NET Documentation"
+.TH "dotnet-test" "1" "2025-12-15" "" ".NET Documentation"
 .hy
 .SH dotnet test
+.PP
+\f[B]This article applies to:\f[R] \[u2714]\[uFE0F] .NET 6 SDK and later versions
 .SH NAME
 .PP
 dotnet-test - .NET test driver used to execute unit tests.
 .SH DESCRIPTION
 .PP
 The \f[V]dotnet test\f[R] command builds the solution and runs the tests with either VSTest or Microsoft Testing Platform (MTP).
-To enable MTP, you need to add a config file named \f[V]dotnet.config\f[R] with an INI-like format located at the root of the solution or repository.
+To enable MTP, you need to specify the test runner in the \f[V]global.json\f[R] file.
 .PP
-Some examples of the \f[V]dotnet.config\f[R] file:
+Some examples of how to specify the test runner in the \f[V]global.json\f[R] file:
 .IP
 .nf
 \f[C]
-[dotnet.test.runner]
-name = \[dq]Microsoft.Testing.Platform\[dq]
+{
+    \[dq]test\[dq]: {
+        \[dq]runner\[dq]: \[dq]Microsoft.Testing.Platform\[dq]
+    }
+}
 \f[R]
 .fi
 .IP
 .nf
 \f[C]
-[dotnet.test.runner]
-name = \[dq]VSTest\[dq]
+{
+    \[dq]test\[dq]: {
+        \[dq]runner\[dq]: \[dq]VSTest\[dq]
+    }
+}
 \f[R]
 .fi
 .RS
@@ -51,8 +59,6 @@ The \f[V]dotnet test\f[R] experience for MTP is only supported in \f[V]Microsoft
 .RE
 .SS VSTest and Microsoft.Testing.Platform (MTP)
 .SS dotnet test with VSTest
-.PP
-\f[B]This article applies to:\f[R] \[u2714]\[uFE0F] .NET Core 3.1 SDK and later versions
 .SH SYNOPSIS
 .IP
 .nf
@@ -71,6 +77,7 @@ dotnet test [<PROJECT> | <SOLUTION> | <DIRECTORY> | <DLL> | <EXE>]
     [-c|--configuration <CONFIGURATION>]
     [--collect <DATA_COLLECTOR_NAME>]
     [-d|--diag <LOG_FILE>]
+    [--disable-build-servers]
     [-f|--framework <FRAMEWORK>]
     [-e|--environment <NAME=\[dq]VALUE\[dq]>]
     [--filter <EXPRESSION>]
@@ -85,6 +92,7 @@ dotnet test [<PROJECT> | <SOLUTION> | <DIRECTORY> | <DLL> | <EXE>]
     [-r|--runtime <RUNTIME_IDENTIFIER>]
     [-s|--settings <SETTINGS_FILE>]
     [-t|--list-tests]
+    [--tl:[auto|on|off]]
     [-v|--verbosity <LEVEL>]
     [<args>...]
     [[--] <RunSettings arguments>]
@@ -172,24 +180,20 @@ If not specified, the directory of the test \f[I].dll\f[R] is searched.
 .PP
 Short form \f[V]-a\f[R] available in .NET SDK versions earlier than 7.
 .RE
-.IP \[bu] 2
-\f[B]\f[VB]--arch <ARCHITECTURE>\f[B]\f[R]
-.RS 2
+.PP
+\f[B]\f[VB]-a|--arch <ARCHITECTURE>\f[B]\f[R]
 .PP
 Specifies the target architecture.
 This is a shorthand syntax for setting the Runtime Identifier (RID), where the provided value is combined with the default RID.
 For example, on a \f[V]win-x64\f[R] machine, specifying \f[V]--arch x86\f[R] sets the RID to \f[V]win-x86\f[R].
 If you use this option, don\[cq]t use the \f[V]-r|--runtime\f[R] option.
 Available since .NET 6 Preview 7.
-.RE
-.IP \[bu] 2
+.PP
 \f[B]\f[VB]--artifacts-path <ARTIFACTS_DIR>\f[B]\f[R]
-.RS 2
 .PP
 All build output files from the executed command will go in subfolders under the specified path, separated by project.
 For more information see Artifacts Output Layout.
 Available since .NET 8 SDK.
-.RE
 .IP \[bu] 2
 \f[B]\f[VB]--blame\f[B]\f[R]
 .RS 2
@@ -271,13 +275,11 @@ For MSTest before version 2.2.4, the timeout is used for all test cases.
 This option is supported on Windows with \f[V]netcoreapp2.1\f[R] and later, on Linux with \f[V]netcoreapp3.1\f[R] and later, and on macOS with \f[V]net5.0\f[R] or later.
 Implies \f[V]--blame\f[R] and \f[V]--blame-hang\f[R].
 .RE
-.IP \[bu] 2
+.PP
 \f[B]\f[VB]-c|--configuration <CONFIGURATION>\f[B]\f[R]
-.RS 2
 .PP
 Defines the build configuration.
 The default for most projects is \f[V]Debug\f[R], but you can override the build configuration settings in your project.
-.RE
 .IP \[bu] 2
 \f[B]\f[VB]--collect <DATA_COLLECTOR_NAME>\f[B]\f[R]
 .RS 2
@@ -297,6 +299,13 @@ To collect code coverage you can also use Coverlet (https://github.com/coverlet-
 Enables diagnostic mode for the test platform and writes diagnostic messages to the specified file and to files next to it.
 The process that is logging the messages determines which files are created, such as \f[V]*.host_<date>.txt\f[R] for test host log, and \f[V]*.datacollector_<date>.txt\f[R] for data collector log.
 .RE
+.PP
+\f[B]\f[VB]--disable-build-servers\f[B]\f[R]
+.PP
+Forces the command to ignore any persistent build servers.
+This option provides a consistent way to disable all use of build caching, which forces a build from scratch.
+A build that doesn\[cq]t rely on caches is useful when the caches might be corrupted or incorrect for some reason.
+Available since .NET 7 SDK.
 .IP \[bu] 2
 \f[B]\f[VB]-e|--environment <NAME=\[dq]VALUE\[dq]>\f[B]\f[R]
 .RS 2
@@ -322,20 +331,15 @@ Only tests that match the filter expression are run.
 For more information, see the Filter option details section.
 For more information and examples on how to use selective unit test filtering, see Running selective unit tests.
 .RE
-.IP \[bu] 2
+.PP
 \f[B]\f[VB]-?|-h|--help\f[B]\f[R]
-.RS 2
 .PP
 Prints out a description of how to use the command.
-.RE
-.IP \[bu] 2
+.PP
 \f[B]\f[VB]--interactive\f[B]\f[R]
-.RS 2
 .PP
 Allows the command to stop and wait for user input or action.
 For example, to complete authentication.
-Available since .NET Core 3.0 SDK.
-.RE
 .IP \[bu] 2
 \f[B]\f[VB]-l|--logger <LOGGER>\f[B]\f[R]
 .RS 2
@@ -394,16 +398,14 @@ The \f[V]--output\f[R] option is disallowed because all outputs of all built pro
 For more information, see Solution-level \f[V]--output\f[R] option no longer valid for build-related commands.
 .RE
 .RE
-.IP \[bu] 2
+.PP
 \f[B]\f[VB]--os <OS>\f[B]\f[R]
-.RS 2
 .PP
 Specifies the target operating system (OS).
 This is a shorthand syntax for setting the Runtime Identifier (RID), where the provided value is combined with the default RID.
 For example, on a \f[V]win-x64\f[R] machine, specifying \f[V]--os linux\f[R] sets the RID to \f[V]linux-x64\f[R].
 If you use this option, don\[cq]t use the \f[V]-r|--runtime\f[R] option.
 Available since .NET 6.
-.RE
 .IP \[bu] 2
 \f[B]\f[VB]--results-directory <RESULTS_DIR>\f[B]\f[R]
 .RS 2
@@ -442,15 +444,39 @@ Configure a test run (https://github.com/microsoft/vstest/blob/main/docs/configu
 .PP
 List the discovered tests instead of running the tests.
 .RE
+.PP
+\f[B]\f[VB]--tl:[auto|on|off]\f[B]\f[R]
+.PP
+Specifies whether \f[I]Terminal Logger\f[R] should be used for the build output.
+The default is \f[V]auto\f[R], which first verifies the environment before enabling terminal logging.
+The environment check verifies that the terminal is capable of using modern output features and isn\[cq]t using a redirected standard output before enabling the new logger.
+\f[V]on\f[R] skips the environment check and enables terminal logging.
+\f[V]off\f[R] skips the environment check and uses the default console logger.
+.PP
+Terminal Logger shows you the restore phase followed by the build phase.
+During each phase, the currently building projects appear at the bottom of the terminal.
+Each project that\[cq]s building outputs both the MSBuild target currently being built and the amount of time spent on that target.
+You can search this information to learn more about the build.
+When a project is finished building, a single \[lq]build completed\[rq] section is written that captures:
 .IP \[bu] 2
+The name of the built project.
+.IP \[bu] 2
+The target framework (if multi-targeted).
+.IP \[bu] 2
+The status of that build.
+.IP \[bu] 2
+The primary output of that build (which is hyperlinked).
+.IP \[bu] 2
+Any diagnostics generated for that project.
+.PP
+This option is available starting in .NET 8.
+.PP
 \f[B]\f[VB]-v|--verbosity <LEVEL>\f[B]\f[R]
-.RS 2
 .PP
 Sets the verbosity level of the command.
 Allowed values are \f[V]q[uiet]\f[R], \f[V]m[inimal]\f[R], \f[V]n[ormal]\f[R], \f[V]d[etailed]\f[R], and \f[V]diag[nostic]\f[R].
 The default is \f[V]minimal\f[R].
 For more information, see <xref:Microsoft.Build.Framework.LoggerVerbosity>.
-.RE
 .IP \[bu] 2
 \f[B]\f[VB]args\f[B]\f[R]
 .RS 2
@@ -736,7 +762,6 @@ Passing runsettings arguments through commandline (https://github.com/microsoft/
 dotnet test
     [--project <PROJECT_PATH>]
     [--solution <SOLUTION_PATH>]
-    [--directory <DIRECTORY_PATH>]
     [--test-modules <EXPRESSION>] 
     [--root-directory <ROOT_PATH>]
     [--max-parallel-test-modules <NUMBER>]
@@ -766,7 +791,7 @@ Moreover, MTP supports a globbing filter when running tests.
 For more information, see Microsoft.Testing.Platform.
 .RS
 .PP
-[!WARNING] When Microsoft.Testing.Platform is opted in via \f[V]dotnet.config\f[R], \f[V]dotnet test\f[R] expects all test projects to use Microsoft.Testing.Platform.
+[!WARNING] When Microsoft.Testing.Platform is opted in via \f[V]global.json\f[R], \f[V]dotnet test\f[R] expects all test projects to use Microsoft.Testing.Platform.
 It is an error if any of the test projects use VSTest.
 .RE
 .SS Implicit restore
@@ -780,7 +805,7 @@ For information about how to manage NuGet feeds, see the \f[V]dotnet restore\f[R
 .SH OPTIONS
 .RS
 .PP
-You can use only one of the following options at a time: \f[V]--project\f[R], \f[V]--solution\f[R], \f[V]--directory\f[R], or \f[V]--test-modules\f[R].
+You can use only one of the following options at a time: \f[V]--project\f[R], \f[V]--solution\f[R], or \f[V]--test-modules\f[R].
 These options can\[cq]t be combined.
 In addition, when using \f[V]--test-modules\f[R], you can\[cq]t specify \f[V]--arch\f[R], \f[V]--configuration\f[R], \f[V]--framework\f[R], \f[V]--os\f[R], or \f[V]--runtime\f[R].
 These options are not relevant for an already-built module.
@@ -789,19 +814,15 @@ These options are not relevant for an already-built module.
 \f[B]\f[VB]--project <PROJECT_PATH>\f[B]\f[R]
 .RS 2
 .PP
-Specifies the path to the test project.
+Specifies the path of the project file to run (folder name or full path).
+If not specified, it defaults to the current directory.
 .RE
 .IP \[bu] 2
 \f[B]\f[VB]--solution <SOLUTION_PATH>\f[B]\f[R]
 .RS 2
 .PP
-Specifies the path to the solution.
-.RE
-.IP \[bu] 2
-\f[B]\f[VB]--directory <DIRECTORY_PATH>\f[B]\f[R]
-.RS 2
-.PP
-Specifies the path to a directory that contains a project or a solution.
+Specifies the path of the solution file to run (folder name or full path).
+If not specified, it defaults to the current directory.
 .RE
 .IP \[bu] 2
 \f[B]\f[VB]--test-modules <EXPRESSION>\f[B]\f[R]
@@ -823,24 +844,21 @@ It can only be used with the \f[V]--test-modules\f[R] option.
 .RS 2
 .PP
 Specifies the maximum number of test modules that can run in parallel.
+The default is <xref:System.Environment.ProcessorCount?displayProperty=nameWithType>.
 .RE
-.IP \[bu] 2
-\f[B]\f[VB]--arch <ARCHITECTURE>\f[B]\f[R]
-.RS 2
+.PP
+\f[B]\f[VB]-a|--arch <ARCHITECTURE>\f[B]\f[R]
 .PP
 Specifies the target architecture.
 This is a shorthand syntax for setting the Runtime Identifier (RID), where the provided value is combined with the default RID.
 For example, on a \f[V]win-x64\f[R] machine, specifying \f[V]--arch x86\f[R] sets the RID to \f[V]win-x86\f[R].
 If you use this option, don\[cq]t use the \f[V]-r|--runtime\f[R] option.
 Available since .NET 6 Preview 7.
-.RE
-.IP \[bu] 2
+.PP
 \f[B]\f[VB]-c|--configuration <CONFIGURATION>\f[B]\f[R]
-.RS 2
 .PP
 Defines the build configuration.
 The default for most projects is \f[V]Debug\f[R], but you can override the build configuration settings in your project.
-.RE
 .IP \[bu] 2
 \f[B]\f[VB]-f|--framework <FRAMEWORK>\f[B]\f[R]
 .RS 2
@@ -848,16 +866,14 @@ The default for most projects is \f[V]Debug\f[R], but you can override the build
 The target framework moniker (TFM) of the target framework to run tests for.
 The target framework must also be specified in the project file.
 .RE
-.IP \[bu] 2
+.PP
 \f[B]\f[VB]--os <OS>\f[B]\f[R]
-.RS 2
 .PP
 Specifies the target operating system (OS).
 This is a shorthand syntax for setting the Runtime Identifier (RID), where the provided value is combined with the default RID.
 For example, on a \f[V]win-x64\f[R] machine, specifying \f[V]--os linux\f[R] sets the RID to \f[V]linux-x64\f[R].
 If you use this option, don\[cq]t use the \f[V]-r|--runtime\f[R] option.
 Available since .NET 6.
-.RE
 .IP \[bu] 2
 \f[B]\f[VB]-r|--runtime <RUNTIME_IDENTIFIER>\f[B]\f[R]
 .RS 2
@@ -865,15 +881,18 @@ Available since .NET 6.
 The target runtime to test for.
 .PP
 Short form \f[V]-r\f[R] available starting in .NET SDK 7.
-.RE
-.IP \[bu] 2
-\f[B]\f[VB]-v|--verbosity <LEVEL>\f[B]\f[R]
-.RS 2
+.RS
 .PP
-Sets the MSBuild verbosity level.
+Running tests for a solution with a global \f[V]RuntimeIdentifier\f[R] property (explicitly or via \f[V]--arch\f[R], \f[V]--runtime\f[R], or \f[V]--os\f[R]) is not supported.
+Set \f[V]RuntimeIdentifier\f[R] on an individual project level instead.
+.RE
+.RE
+.PP
+\f[B]\f[VB]-v|--verbosity <LEVEL>\f[B]\f[R]
+.PP
+Sets the verbosity level of the command.
 Allowed values are \f[V]q[uiet]\f[R], \f[V]m[inimal]\f[R], \f[V]n[ormal]\f[R], \f[V]d[etailed]\f[R], and \f[V]diag[nostic]\f[R].
 For more information, see <xref:Microsoft.Build.Framework.LoggerVerbosity>.
-.RE
 .IP \[bu] 2
 \f[B]\f[VB]--no-build\f[B]\f[R]
 .RS 2
@@ -937,14 +956,10 @@ The short form \f[V]-p\f[R] can be used for \f[V]--property\f[R].
 The same applies for \f[V]/property:property=value\f[R] and its short form is \f[V]/p\f[R].
 More informatiom about the available arguments can be found in the dotnet msbuild documentation.
 .RE
-.IP \[bu] 2
+.PP
 \f[B]\f[VB]-?|-h|--help\f[B]\f[R]
-.RS 2
 .PP
 Prints out a description of how to use the command.
-Some options are static while others, namely platform and extension options, are dynamic.
-These dynamic options might differ from one test application to another, as they are based on the registered extensions in the test project.
-.RE
 .IP \[bu] 2
 \f[B]\f[VB]args\f[B]\f[R]
 .RS 2
@@ -989,16 +1004,6 @@ Run the tests in the \f[V]TestProjects\f[R] solution:
 .nf
 \f[C]
 dotnet test --solution ./TestProjects/TestProjects.sln
-\f[R]
-.fi
-.RE
-.IP \[bu] 2
-Run the tests in a solution or project that can be found in the \f[V]TestProjects\f[R] directory:
-.RS 2
-.IP
-.nf
-\f[C]
-dotnet test --directory ./TestProjects
 \f[R]
 .fi
 .RE
