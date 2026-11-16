@@ -14,11 +14,11 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "dotnet-nuget-update-source" "1" "2025-06-13" "" ".NET Documentation"
+.TH "dotnet-nuget-update-source" "1" "2026-11-13" "" ".NET Documentation"
 .hy
 .SH dotnet nuget update source
 .PP
-\f[B]This article applies to:\f[R] \[u2714]\[uFE0F] .NET Core 3.1.200 SDK and later versions
+\f[B]This article applies to:\f[R] \[u2714]\[uFE0F] .NET 6 SDK and later versions
 .SH NAME
 .PP
 dotnet-nuget-update-source - Update a NuGet source.
@@ -33,6 +33,7 @@ Use package sources that you trust.
 dotnet nuget update source <NAME> [--source <SOURCE>] [--username <USER>]
     [--password <PASSWORD>] [--store-password-in-clear-text]
     [--valid-authentication-types <TYPES>] [--configfile <FILE>]
+    [--min-publish-age-hours <HOURS>]
 
 dotnet nuget update source -h|--help
 \f[R]
@@ -48,14 +49,25 @@ The \f[V]dotnet nuget update source\f[R] command updates an existing source in y
 Name of the source.
 .RE
 .SH OPTIONS
-.IP \[bu] 2
+.PP
 \f[B]\f[VB]--configfile <FILE>\f[B]\f[R]
-.RS 2
 .PP
 The NuGet configuration file (\f[I]nuget.config\f[R]) to use.
 If specified, only the settings from this file will be used.
 If not specified, the hierarchy of configuration files from the current directory will be used.
 For more information, see Common NuGet Configurations.
+.IP \[bu] 2
+\f[B]\f[VB]--min-publish-age-hours <HOURS>\f[B]\f[R]
+.RS 2
+.PP
+Sets the minimum package publish age for this source in nonnegative whole hours.
+When \f[V]dotnet package add\f[R] or \f[V]dotnet package update\f[R] automatically selects a version, it excludes versions from this source that haven\[cq]t reached the minimum age, unless the package matches a configured exception.
+Sets the \f[V]minPublishAgeHours\f[R] attribute in \f[I]nuget.config\f[R].
+Set the option to \f[V]0\f[R] to remove the source\[cq]s minimum age.
+If you omit the option, the existing value stays unchanged.
+Available starting with .NET SDK 11.0.100.
+.PP
+For package-selection behavior, exceptions, and restore limitations, see Minimum package publish age.
 .RE
 .IP \[bu] 2
 \f[B]\f[VB]-p|--password <PASSWORD>\f[B]\f[R]
@@ -107,6 +119,26 @@ Update a source with name of \f[V]mySource\f[R]:
 .nf
 \f[C]
 dotnet nuget update source mySource --source c:\[rs]packages
+\f[R]
+.fi
+.RE
+.IP \[bu] 2
+Set a 72-hour minimum package publish age for \f[V]nuget.org\f[R]:
+.RS 2
+.IP
+.nf
+\f[C]
+dotnet nuget update source nuget.org --min-publish-age-hours 72
+\f[R]
+.fi
+.RE
+.IP \[bu] 2
+Remove the minimum package publish age for \f[V]nuget.org\f[R]:
+.RS 2
+.IP
+.nf
+\f[C]
+dotnet nuget update source nuget.org --min-publish-age-hours 0
 \f[R]
 .fi
 .RE
